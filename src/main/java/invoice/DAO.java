@@ -76,9 +76,43 @@ public class DAO {
 	 * taille
 	 * @throws java.lang.Exception si la transaction a échoué
 	 */
-	public void createInvoice(CustomerEntity customer, int[] productIDs, int[] quantities)
-		throws Exception {
-		throw new UnsupportedOperationException("Pas encore implémenté");
+	public void createInvoice(CustomerEntity customer, int[] productIDs, int[] quantities) throws SQLException{
+                String sqlCrea = "INSERT INTO Invoice (CustomerID) VALUES (?)";
+                String sqlCreaI = "INSERT INTO Item (InvoiceID,ProductID,Quantity,Cost,Item) VALUES (?,?,?,?,?)";
+                String sqlGetPrice = "SELECT Price FROM Product WHERE ID = (?)";
+                
+		try (Connection connection = myDataSource.getConnection();
+                    PreparedStatement creaStatement = connection.prepareStatement(sqlCrea, Statement.RETURN_GENERATED_KEYS);
+                    PreparedStatement creaIStatement = connection.prepareStatement(sqlCreaI);
+                    PreparedStatement getPrice = connection.prepareStatement(sqlGetPrice)) {
+
+                    creaStatement.setInt(1, customer.getCustomerId());
+                    creaStatement.executeUpdate();
+                    
+                    ResultSet result = creaStatement.getGeneratedKeys(); 
+                    result.next();
+                    int IDInvoice = result.getInt(1);
+                    
+                    for (int i = 0; i < productIDs.length; i++) {
+                        int IDactuel =  productIDs[i];
+                        getPrice.setInt(1, IDactuel);
+                        
+                        
+                        ResultSet k = getPrice.executeQuery();
+                        k.next();
+                        
+                        creaIStatement.setInt(1, IDInvoice);
+                        creaIStatement.setInt(2, IDactuel);
+                        creaIStatement.setInt(3, quantities[i]);
+                        creaIStatement.setInt(4, k.getInt(1));
+                        creaIStatement.setInt(5, i);
+                        creaIStatement.executeUpdate();
+                    }
+			
+		}
+                
+                
+                
 	}
 
 	/**

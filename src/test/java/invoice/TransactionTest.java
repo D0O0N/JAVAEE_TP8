@@ -93,7 +93,21 @@ public class TransactionTest {
 
 		assertEquals(before + 2f * 10f, after, 0.001f);		
 	}
-	
+	@Test
+	public void failProductID() throws Exception {
+		// On calcule combien le client a de factures
+		int id = myCustomer.getCustomerId();
+		int before = myDAO.numberOfInvoicesForCustomer( id );
+		// Un tableau de 3 productID
+		int[] productIds = new int[]{0,1,75};
+		// Un tableau de 3 quantites
+		int[] quantities = new int[]{10, 20, 30};
+		// On exécute la transaction
+		myDAO.createInvoice(myCustomer, productIds, quantities);
+		int after = myDAO.numberOfInvoicesForCustomer( myCustomer.getCustomerId() );
+		// Le client a maintenant une facture de plus
+		assertEquals(before + 1, after);
+        }
 
 	
 	public static DataSource getDataSource() throws SQLException {
