@@ -85,35 +85,45 @@ public class DAO {
                     PreparedStatement creaStatement = connection.prepareStatement(sqlCrea, Statement.RETURN_GENERATED_KEYS);
                     PreparedStatement creaIStatement = connection.prepareStatement(sqlCreaI);
                     PreparedStatement getPrice = connection.prepareStatement(sqlGetPrice)) {
+                    connection.setAutoCommit(false);
+                    try {
+                        creaStatement.setInt(1, customer.getCustomerId());
+                        creaStatement.executeUpdate();
 
-                    creaStatement.setInt(1, customer.getCustomerId());
-                    creaStatement.executeUpdate();
+                        ResultSet result = creaStatement.getGeneratedKeys(); 
+                        result.next();
+                        int IDInvoice = result.getInt(1);
+
+                        for (int i = 0; i < productIDs.length; i++) {
+                            int IDactuel =  productIDs[i];
+                            getPrice.setInt(1, IDactuel);
+
+
+                            ResultSet k = getPrice.executeQuery();
+                            k.next();
+
+                            creaIStatement.setInt(1, IDInvoice);
+                            creaIStatement.setInt(2, IDactuel);
+                            creaIStatement.setInt(3, quantities[i]);
+                            creaIStatement.setInt(4, k.getInt(1));
+                            creaIStatement.setInt(5, i);
+                            creaIStatement.executeUpdate();
+                        }
+                        connection.commit();
+                    }
+                    catch(Exception ex){
+                        connection.rollback(); // On annule la transaction
+                        throw ex;       
+                    }
                     
-                    ResultSet result = creaStatement.getGeneratedKeys(); 
-                    result.next();
-                    int IDInvoice = result.getInt(1);
-                    
-                    for (int i = 0; i < productIDs.length; i++) {
-                        int IDactuel =  productIDs[i];
-                        getPrice.setInt(1, IDactuel);
-                        
-                        
-                        ResultSet k = getPrice.executeQuery();
-                        k.next();
-                        
-                        creaIStatement.setInt(1, IDInvoice);
-                        creaIStatement.setInt(2, IDactuel);
-                        creaIStatement.setInt(3, quantities[i]);
-                        creaIStatement.setInt(4, k.getInt(1));
-                        creaIStatement.setInt(5, i);
-                        creaIStatement.executeUpdate();
                     }
 			
 		}
                 
                 
                 
-	}
+                
+	
 
 	/**
 	 *

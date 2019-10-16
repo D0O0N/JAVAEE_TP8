@@ -97,16 +97,43 @@ public class TransactionTest {
 	public void failProductID() throws Exception {
 		// On calcule combien le client a de factures
 		int id = myCustomer.getCustomerId();
-		int before = myDAO.numberOfInvoicesForCustomer( id );
+		float before = myDAO.totalForCustomer(id);
 		// Un tableau de 3 productID
-		int[] productIds = new int[]{0,1,75};
+		int[] productIds = new int[]{0,1,15};
 		// Un tableau de 3 quantites
 		int[] quantities = new int[]{10, 20, 30};
 		// On exécute la transaction
-		myDAO.createInvoice(myCustomer, productIds, quantities);
+                try {
+                    myDAO.createInvoice(myCustomer, productIds, quantities);
+                    fail("La création dela facture ne devrait pas être possible");
+                } catch (java.sql.SQLException e) {
+                }
+		
+		float after = myDAO.totalForCustomer(id);
+		// Le client a maintenant une facture de plus
+		assertEquals(before , after , 0.001f);
+        }
+        @Test
+	public void failProductQuantityNeg() throws Exception {
+		// On calcule combien le client a de factures
+                
+		int id = myCustomer.getCustomerId();
+		float before = myDAO.totalForCustomer(id);
+		// Un tableau de 3 productID
+		int[] productIds = new int[]{0,1,2};
+		// Un tableau de 3 quantites
+		int[] quantities = new int[]{10, -20, 30};
+		// On exécute la transaction
+
+                try {
+                    myDAO.createInvoice(myCustomer, productIds, quantities);
+                    fail("La création dela facture ne devrait pas être possible");
+                } catch (java.sql.SQLException e) {
+                }
+		
 		int after = myDAO.numberOfInvoicesForCustomer( myCustomer.getCustomerId() );
 		// Le client a maintenant une facture de plus
-		assertEquals(before + 1, after);
+                assertEquals(before , myDAO.totalForCustomer(id), 0.001f);
         }
 
 	
